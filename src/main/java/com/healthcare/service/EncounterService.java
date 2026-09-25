@@ -23,6 +23,8 @@ public class EncounterService {
     }
 
     public EncounterResponse createEncounter(EncounterRequest request) {
+        validateEncounterRequest(request);
+
         Patient patient = findPatientOrThrow(request.getPatientId());
 
         Encounter encounter = new Encounter();
@@ -53,6 +55,8 @@ public class EncounterService {
     }
 
     public EncounterResponse updateEncounter(Long encounterId, EncounterRequest request) {
+        validateEncounterRequest(request);
+
         Encounter encounter = findEncounterOrThrow(encounterId);
         Patient patient = findPatientOrThrow(request.getPatientId());
 
@@ -70,12 +74,43 @@ public class EncounterService {
 
     private Patient findPatientOrThrow(Long patientId) {
         return patientRepository.findById(patientId)
-                .orElseThrow(() -> new EntityNotFoundException("Patient not found with id: " + patientId));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Patient not found with id: " + patientId
+                        )
+                );
     }
 
     private Encounter findEncounterOrThrow(Long encounterId) {
         return encounterRepository.findById(encounterId)
-                .orElseThrow(() -> new EntityNotFoundException("Encounter not found with id: " + encounterId));
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Encounter not found with id: " + encounterId
+                        )
+                );
+    }
+
+    private void validateEncounterRequest(EncounterRequest request) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("Encounter request must not be null");
+        }
+
+        if (request.getPatientId() == null) {
+            throw new IllegalArgumentException("Patient ID is required");
+        }
+
+        if (request.getEncounterDate() == null) {
+            throw new IllegalArgumentException("Encounter date is required");
+        }
+
+        if (request.getEncounterType() == null || request.getEncounterType().isBlank()) {
+            throw new IllegalArgumentException("Encounter type is required");
+        }
+
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
+            throw new IllegalArgumentException("Status is required");
+        }
     }
 
     private void applyRequestToEntity(EncounterRequest request, Encounter encounter) {
